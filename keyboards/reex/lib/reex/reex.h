@@ -149,6 +149,9 @@ typedef struct {
     reex_motion_t this_motion;
     reex_motion_t that_motion;
 
+    reex_motion_t ex_this_motion;
+    reex_motion_t ex_that_motion;
+
     uint8_t cpi_value;
     bool    cpi_changed;
 

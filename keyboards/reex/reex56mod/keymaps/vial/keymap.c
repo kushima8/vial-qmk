@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H
 #include "quantum.h"
 #include "drivers/pmw3360/pmw3360.h"
+#include "lib/reex/reex.h"
 
 #define MANUAL  TO(0)
 #define AUTO   TO(1)
@@ -176,11 +177,8 @@ bool dip_switch_update_kb(uint8_t index, bool active) {
 
 #ifdef POINTING_DEVICE_ENABLE
 
-bool pmw3360_has_1 = false;
-
-void pointing_device_init_kb(void) {
-    pmw3360_has_1 = pmw3360_init(1);
-}
+bool ex_pmw3360_has = false;
+const uint8_t EX_CPI_DEFAULT = REEX_CPI_DEFAULT / 100;
 
 static int16_t add16(int16_t a, int16_t b) {
     int16_t r = a + b;
@@ -192,17 +190,66 @@ static int16_t add16(int16_t a, int16_t b) {
     return r;
 }
 
+static void motion_to_mouse(reex_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
+    if (!as_scroll) {
+        reex_on_apply_motion_to_mouse_scroll(m, r, is_left);
+    } else {
+        reex_on_apply_motion_to_mouse_move(m, r, is_left);
+    }
+}
+
+static inline bool should_report(void) {
+    uint32_t now = timer_read32();
+#if defined(REEX_REPORTMOUSE_INTERVAL) && REEX_REPORTMOUSE_INTERVAL > 0
+    // throttling mouse report rate.
+    static uint32_t last = 0;
+    if (TIMER_DIFF_32(now, last) < REEX_REPORTMOUSE_INTERVAL) {
+        return false;
+    }
+    last = now;
+#endif
+#if defined(REEX_SCROLLBALL_INHIVITOR) && REEX_SCROLLBALL_INHIVITOR > 0
+    if (TIMER_DIFF_32(now, reex.scroll_mode_changed) < REEX_SCROLLBALL_INHIVITOR) {
+        reex.this_motion.x = 0;
+        reex.this_motion.y = 0;
+        reex.that_motion.x = 0;
+        reex.that_motion.y = 0;
+    }
+#endif
+    return true;
+}
+
+void pointing_device_init_kb(void) {
+    ex_pmw3360_has = pmw3360_init(1);
+#if defined(REEX_PMW3360_UPLOAD_SROM_ID)
+#    if REEX_PMW3360_UPLOAD_SROM_ID == 0x04
+        pmw3360_srom_upload(1,pmw3360_srom_0x04);
+#    elif REEX_PMW3360_UPLOAD_SROM_ID == 0x81
+        pmw3360_srom_upload(1,pmw3360_srom_0x81);
+#    else
+#        error Invalid value for REEX_PMW3360_UPLOAD_SROM_ID. Please choose 0x04 or 0x81 or disable it.
+#    endif
+#endif
+        pmw3360_cpi_set(EX_CPI_DEFAULT - 1);
+}
+
 report_mouse_t pointing_device_task_kb(report_mouse_t rep) {
-    if (pmw3360_has_1) {
+    if (ex_pmw3360_has) {
         pmw3360_motion_t d = {0};
         if (pmw3360_motion_burst(1,&d)) {
             ATOMIC_BLOCK_FORCEON {
-                reex.this_motion.x = add16(reex.this_motion.x, d.x);
-                reex.this_motion.y = add16(reex.this_motion.y, d.y);
+                reex.ex_this_motion.x = add16(reex.ex_this_motion.x, d.x);
+                reex.ex_this_motion.y = add16(reex.ex_this_motion.y, d.y);
             }
         }
     }
-    return pointing_device_task_user(rep);
+    // report mouse event, if keyboard is primary.
+    if (is_keyboard_master() && should_report()) {
+        // modify mouse report by PMW3360 motion.
+        motion_to_mouse(&reex.ex_this_motion, &rep, is_keyboard_left(), reex.scroll_mode);
+        motion_to_mouse(&reex.ex_that_motion, &rep, !is_keyboard_left(), reex.scroll_mode ^ reex.this_have_ball);
+    }
+    return rep;
 }
 
 #endif

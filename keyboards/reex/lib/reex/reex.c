@@ -314,6 +314,8 @@ static void rpc_get_motion_handler(uint8_t in_buflen, const void *in_data, uint8
     // clear motion
     reex.this_motion.x = 0;
     reex.this_motion.y = 0;
+    reex.ex_this_motion.x = 0;
+    reex.ex_this_motion.y = 0;
 }
 
 static void rpc_get_motion_invoke(void) {
