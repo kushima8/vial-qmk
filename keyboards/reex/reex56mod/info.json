@@ -12,6 +12,9 @@
     "ws2812": {
         "driver": "vendor"
     },
+    "features": {
+        "encoder": true
+    },
     "layouts": {
         "LAYOUT": {
             "layout": [

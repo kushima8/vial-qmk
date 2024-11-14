@@ -144,7 +144,7 @@ void housekeeping_task_user(void){
 #endif
 
 #ifdef ENCODER_MAP_ENABLE
-const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
+const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
     [0] = { ENCODER_CCW_CW(KC_B, KC_A ) },
     [1] = { ENCODER_CCW_CW(KC_D, KC_C ) },
     [2] = { ENCODER_CCW_CW(KC_F, KC_E ) },
@@ -210,10 +210,10 @@ static inline bool should_report(void) {
 #endif
 #if defined(REEX_SCROLLBALL_INHIVITOR) && REEX_SCROLLBALL_INHIVITOR > 0
     if (TIMER_DIFF_32(now, reex.scroll_mode_changed) < REEX_SCROLLBALL_INHIVITOR) {
-        reex.this_motion.x = 0;
-        reex.this_motion.y = 0;
-        reex.that_motion.x = 0;
-        reex.that_motion.y = 0;
+        reex.ex_this_motion.x = 0;
+        reex.ex_this_motion.y = 0;
+        reex.ex_that_motion.x = 0;
+        reex.ex_that_motion.y = 0;
     }
 #endif
     return true;
@@ -233,8 +233,8 @@ void pointing_device_init_kb(void) {
         pmw3360_cpi_set(EX_CPI_DEFAULT - 1);
 }
 
-report_mouse_t pointing_device_task_kb(report_mouse_t rep) {
-    if (ex_pmw3360_has) {
+report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
+    if (reex.this_have_ball && ex_pmw3360_has) {
         pmw3360_motion_t d = {0};
         if (pmw3360_motion_burst(1,&d)) {
             ATOMIC_BLOCK_FORCEON {
@@ -246,10 +246,10 @@ report_mouse_t pointing_device_task_kb(report_mouse_t rep) {
     // report mouse event, if keyboard is primary.
     if (is_keyboard_master() && should_report()) {
         // modify mouse report by PMW3360 motion.
-        motion_to_mouse(&reex.ex_this_motion, &rep, is_keyboard_left(), reex.scroll_mode);
-        motion_to_mouse(&reex.ex_that_motion, &rep, !is_keyboard_left(), reex.scroll_mode ^ reex.this_have_ball);
+        motion_to_mouse(&reex.ex_this_motion, &mouse_report, is_keyboard_left(), reex.scroll_mode);
+        //motion_to_mouse(&reex.ex_that_motion, &mouse_report, !is_keyboard_left(), reex.scroll_mode ^ reex.this_have_ball);
     }
-    return rep;
+    return pointing_device_task_user(mouse_report);
 }
 
 #endif
