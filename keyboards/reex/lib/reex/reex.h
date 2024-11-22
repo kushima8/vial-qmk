@@ -146,6 +146,9 @@ typedef struct {
     bool that_have_ball;
     bool negotiated;
 
+    bool ex_this_have_ball;
+    bool ex_that_have_ball;
+
     reex_motion_t this_motion;
     reex_motion_t that_motion;
 

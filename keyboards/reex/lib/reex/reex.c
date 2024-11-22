@@ -44,6 +44,9 @@ reex_t reex = {
     .that_have_ball = false,
     .negotiated     = false,
 
+    .ex_this_have_ball = false,
+    .ex_that_have_ball = false,
+
     .this_motion = {0},
     .that_motion = {0},
     .ex_this_motion = {0},

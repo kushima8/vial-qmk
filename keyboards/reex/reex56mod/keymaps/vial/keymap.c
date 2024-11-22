@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 #include "drivers/pmw3360/pmw3360.h"
 #include "lib/reex/reex.h"
+#include "transactions.h"
 
 #define MANUAL  TO(0)
 #define AUTO   TO(1)
@@ -177,8 +178,11 @@ bool dip_switch_update_kb(uint8_t index, bool active) {
 
 #ifdef POINTING_DEVICE_ENABLE
 
-bool ex_pmw3360_has = false;
 const uint8_t EX_CPI_DEFAULT = REEX_CPI_DEFAULT / 100;
+
+static inline int8_t clip2int8(int16_t v) {
+    return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
+}
 
 static int16_t add16(int16_t a, int16_t b) {
     int16_t r = a + b;
@@ -220,7 +224,8 @@ static inline bool should_report(void) {
 }
 
 void pointing_device_init_kb(void) {
-    ex_pmw3360_has = pmw3360_init(1);
+    reex.ex_this_have_ball = pmw3360_init(1);
+    if (reex.ex_this_have_ball) {
 #if defined(REEX_PMW3360_UPLOAD_SROM_ID)
 #    if REEX_PMW3360_UPLOAD_SROM_ID == 0x04
         pmw3360_srom_upload(1,pmw3360_srom_0x04);
@@ -231,23 +236,30 @@ void pointing_device_init_kb(void) {
 #    endif
 #endif
         pmw3360_cpi_set(EX_CPI_DEFAULT - 1);
+    }
 }
 
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
-    if (reex.this_have_ball && ex_pmw3360_has) {
+    if (reex.this_have_ball && reex.ex_this_have_ball) {
         pmw3360_motion_t d = {0};
         if (pmw3360_motion_burst(1,&d)) {
             ATOMIC_BLOCK_FORCEON {
                 reex.ex_this_motion.x = add16(reex.ex_this_motion.x, d.x);
                 reex.ex_this_motion.y = add16(reex.ex_this_motion.y, d.y);
+                reex.ex_this_motion.x = clip2int8(mouse_report.x + reex.ex_this_motion.x);
+                reex.ex_this_motion.y = clip2int8(mouse_report.y + reex.ex_this_motion.y);
             }
         }
     }
     // report mouse event, if keyboard is primary.
     if (is_keyboard_master() && should_report()) {
         // modify mouse report by PMW3360 motion.
+        if(reex.ex_this_have_ball){
         motion_to_mouse(&reex.ex_this_motion, &mouse_report, is_keyboard_left(), reex.scroll_mode);
-        //motion_to_mouse(&reex.ex_that_motion, &mouse_report, !is_keyboard_left(), reex.scroll_mode ^ reex.this_have_ball);
+        }
+        if(reex.ex_that_have_ball){
+        motion_to_mouse(&reex.ex_that_motion, &mouse_report, !is_keyboard_left(), reex.scroll_mode);
+        }
     }
     return pointing_device_task_user(mouse_report);
 }
