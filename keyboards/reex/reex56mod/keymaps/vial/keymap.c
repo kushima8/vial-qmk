@@ -100,6 +100,16 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
+static int16_t add16(int16_t a, int16_t b) {
+    int16_t r = a + b;
+    if (a >= 0 && b >= 0 && r < 0) {
+        r = 32767;
+    } else if (a < 0 && b < 0 && r >= 0) {
+        r = -32768;
+    }
+    return r;
+}
+
 #ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
 layer_state_t layer_state_set_user(layer_state_t state) {
     switch(get_highest_layer(remove_auto_mouse_layer(state, true))) {
@@ -116,6 +126,13 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 }
 #endif
 
+static void rpc_get_ex_motion_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
+    *(reex_motion_t *)out_data = reex.ex_this_motion;
+    // clear motion
+    reex.ex_this_motion.x = 0;
+    reex.ex_this_motion.y = 0;
+}
+
 #if defined(ENCODER_ENABLE) && defined(DIP_SWITCH_ENABLE)
 void keyboard_post_init_user(void) {
     if(!is_keyboard_master()){
@@ -125,7 +142,23 @@ void keyboard_post_init_user(void) {
             gpio_set_pin_output(GP26);
             gpio_write_pin_low(GP26);
         }
+        transaction_register_rpc(REEX_GET_EX_MOTION, rpc_get_ex_motion_handler);
     }
+}
+
+static void rpc_get_ex_motion_invoke(void) {
+    static uint32_t last_sync = 0;
+    uint32_t        now       = timer_read32();
+    if (TIMER_DIFF_32(now, last_sync) < REEX_TX_GETMOTION_INTERVAL) {
+        return;
+    }
+    reex_motion_t ex_recv = {0};
+    if (transaction_rpc_exec(REEX_GET_EX_MOTION, 0, NULL, sizeof(ex_recv), &ex_recv)) {
+        reex.ex_that_motion.x = add16(reex.that_motion.x, ex_recv.x);
+        reex.ex_that_motion.y = add16(reex.that_motion.y, ex_recv.y);
+    }
+    last_sync = now;
+    return;
 }
 
 void housekeeping_task_user(void){
@@ -139,6 +172,7 @@ void housekeeping_task_user(void){
                 gpio_write_pin_low(GP26);
                 encoder_ini_flg = false;
             }
+        rpc_get_ex_motion_invoke();
         }
     }
 }
@@ -182,16 +216,6 @@ const uint8_t EX_CPI_DEFAULT = REEX_CPI_DEFAULT / 100;
 
 static inline int8_t clip2int8(int16_t v) {
     return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
-}
-
-static int16_t add16(int16_t a, int16_t b) {
-    int16_t r = a + b;
-    if (a >= 0 && b >= 0 && r < 0) {
-        r = 32767;
-    } else if (a < 0 && b < 0 && r >= 0) {
-        r = -32768;
-    }
-    return r;
 }
 
 static void motion_to_mouse(reex_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
@@ -241,13 +265,13 @@ void pointing_device_init_kb(void) {
 
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     if (reex.this_have_ball && reex.ex_this_have_ball) {
-        pmw3360_motion_t d = {0};
-        if (pmw3360_motion_burst(1,&d)) {
+        pmw3360_motion_t ex_d = {0};
+        if (pmw3360_motion_burst(1,&ex_d)) {
             ATOMIC_BLOCK_FORCEON {
-                reex.ex_this_motion.x = add16(reex.ex_this_motion.x, d.x);
-                reex.ex_this_motion.y = add16(reex.ex_this_motion.y, d.y);
-                reex.ex_this_motion.x = clip2int8(mouse_report.x + reex.ex_this_motion.x);
-                reex.ex_this_motion.y = clip2int8(mouse_report.y + reex.ex_this_motion.y);
+                reex.ex_this_motion.x = add16(reex.ex_this_motion.x, ex_d.x);
+                reex.ex_this_motion.y = add16(reex.ex_this_motion.y, ex_d.y);
+                //reex.ex_this_motion.x = clip2int8(mouse_report.x + reex.ex_this_motion.x);
+                //reex.ex_this_motion.y = clip2int8(mouse_report.y + reex.ex_this_motion.y);
             }
         }
     }
@@ -257,9 +281,9 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
         if(reex.ex_this_have_ball){
         motion_to_mouse(&reex.ex_this_motion, &mouse_report, is_keyboard_left(), reex.scroll_mode);
         }
-        if(reex.ex_that_have_ball){
-        motion_to_mouse(&reex.ex_that_motion, &mouse_report, !is_keyboard_left(), reex.scroll_mode);
-        }
+        //if(reex.ex_that_have_ball){
+        motion_to_mouse(&reex.ex_that_motion, &mouse_report, !is_keyboard_left(), !reex.scroll_mode);
+        //}
     }
     return pointing_device_task_user(mouse_report);
 }
