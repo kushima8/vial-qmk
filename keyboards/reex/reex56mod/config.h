@@ -37,17 +37,12 @@
 
 #define DYNAMIC_KEYMAP_LAYER_COUNT 4
 
-// VIA config
-#define VIA_CUSTOM_LIGHTING_ENABLE
-#define VIA_RGBLIGHT_USER_ADDR (EECONFIG_SIZE)
-#define VIA_EEPROM_MAGIC_ADDR (VIA_RGBLIGHT_USER_ADDR + DYNAMIC_KEYMAP_LAYER_COUNT * 4)  // Layer * 4bytes(RGB Light config)
-
 // Split parameters
 #define SERIAL_USART_TX_PIN GP1
 #define SPLIT_HAND_MATRIX_GRID GP8, GP10
 #define SPLIT_HAND_MATRIX_GRID_LOW_IS_LEFT
 #define SPLIT_USB_DETECT
-#define SPLIT_USB_TIMEOUT 4000
+#define SPLIT_USB_TIMEOUT 4500
 #define SPLIT_USB_TIMEOUT_POLL 25
 #ifdef OLED_ENABLE
 #    define SPLIT_OLED_ENABLE
@@ -56,12 +51,13 @@
 // If your PC does not recognize Reex, try setting this macro. This macro
 // increases the firmware size by 200 bytes, so it is disabled by default, but
 // it has been reported to work well in such cases.
-//#define SPLIT_WATCHDOG_ENABLE
+#define SPLIT_WATCHDOG_ENABLE
 
 #define SPLIT_TRANSACTION_IDS_KB REEX_GET_INFO, REEX_GET_MOTION, REEX_SET_CPI, REEX_GET_EX_MOTION
 
 // RGB LED settings
 #define WS2812_DI_PIN GP0
+#define WS2812_PIO_USE_PIO1
 #ifdef RGBLIGHT_ENABLE
 #    define RGBLIGHT_LED_COUNT      64
 #    define RGBLED_SPLIT    { 32, 32 }
@@ -127,3 +123,7 @@
 #define VIAL_KEYBOARD_UID {0x2E, 0x3B, 0x99, 0xD9, 0xE8, 0x11, 0xA5, 0xE7}
 #define VIAL_UNLOCK_COMBO_ROWS {0, 0}
 #define VIAL_UNLOCK_COMBO_COLS {0, 1}
+
+//#define SELECT_SOFT_SERIAL_SPEED 3
+#define SERIAL_USART_SPEED 86400
+

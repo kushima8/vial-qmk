@@ -130,6 +130,7 @@ typedef struct {
 typedef struct {
     int16_t x;
     int16_t y;
+    bool have_ball;
 } reex_motion_t;
 
 typedef uint8_t reex_cpi_t;

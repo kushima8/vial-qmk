@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "drivers/pmw3360/pmw3360.h"
 #include "lib/reex/reex.h"
 #include "transactions.h"
-
+#include "print.h"
 #define MANUAL  TO(0)
 #define AUTO   TO(1)
 #define FN  MO(2)
@@ -91,7 +91,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // clang-format on
 
 #ifdef OLED_ENABLE
-#    include "lib/oledkit/oledkit.h"
+#include "lib/oledkit/oledkit.h"
 
 void oledkit_render_info_user(void) {
     reex_oled_render_layerinfo();
@@ -100,6 +100,7 @@ void oledkit_render_info_user(void) {
 }
 #endif
 
+#ifdef POINTING_DEVICE_ENABLE
 static int16_t add16(int16_t a, int16_t b) {
     int16_t r = a + b;
     if (a >= 0 && b >= 0 && r < 0) {
@@ -132,20 +133,25 @@ static void rpc_get_ex_motion_handler(uint8_t in_buflen, const void *in_data, ui
     reex.ex_this_motion.x = 0;
     reex.ex_this_motion.y = 0;
 }
+#endif
 
-#if defined(ENCODER_ENABLE) && defined(DIP_SWITCH_ENABLE)
 void keyboard_post_init_user(void) {
     if(!is_keyboard_master()){
+    #if defined(ENCODER_ENABLE) && defined(DIP_SWITCH_ENABLE)
         if(!reex.this_have_ball){
             encoder_init();
             dip_switch_init();
             gpio_set_pin_output(GP26);
             gpio_write_pin_low(GP26);
         }
+    #endif
+    #ifdef POINTING_DEVICE_ENABLE
         transaction_register_rpc(REEX_GET_EX_MOTION, rpc_get_ex_motion_handler);
+    #endif
     }
 }
 
+#ifdef POINTING_DEVICE_ENABLE
 static void rpc_get_ex_motion_invoke(void) {
     static uint32_t last_sync = 0;
     uint32_t        now       = timer_read32();
@@ -153,18 +159,24 @@ static void rpc_get_ex_motion_invoke(void) {
         return;
     }
     reex_motion_t ex_recv = {0};
+        print("as\n");
     if (transaction_rpc_exec(REEX_GET_EX_MOTION, 0, NULL, sizeof(ex_recv), &ex_recv)) {
-        reex.ex_that_motion.x = add16(reex.that_motion.x, ex_recv.x);
-        reex.ex_that_motion.y = add16(reex.that_motion.y, ex_recv.y);
+        reex.ex_that_have_ball = ex_recv.have_ball;
+        reex.ex_that_motion.x = add16(reex.ex_that_motion.x, ex_recv.x);
+        reex.ex_that_motion.y = add16(reex.ex_that_motion.y, ex_recv.y);
+        uprintf("%d a1\n", reex.ex_that_motion.y);
     }
     last_sync = now;
     return;
 }
+#endif
 
 void housekeeping_task_user(void){
     static bool encoder_ini_flg = true;
     if(reex.negotiated && encoder_ini_flg){
+    	print("as\n");
         if(is_keyboard_master()){
+            #if defined(ENCODER_ENABLE) && defined(DIP_SWITCH_ENABLE)
             if(!reex.this_have_ball){
                 encoder_init();
                 dip_switch_init();
@@ -172,11 +184,13 @@ void housekeeping_task_user(void){
                 gpio_write_pin_low(GP26);
                 encoder_ini_flg = false;
             }
+            #endif
+    #ifdef POINTING_DEVICE_ENABLE
         rpc_get_ex_motion_invoke();
+    #endif
         }
     }
 }
-#endif
 
 #ifdef ENCODER_MAP_ENABLE
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
@@ -211,19 +225,10 @@ bool dip_switch_update_kb(uint8_t index, bool active) {
 #endif
 
 #ifdef POINTING_DEVICE_ENABLE
-
 const uint8_t EX_CPI_DEFAULT = REEX_CPI_DEFAULT / 100;
 
 static inline int8_t clip2int8(int16_t v) {
     return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
-}
-
-static void motion_to_mouse(reex_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
-    if (!as_scroll) {
-        reex_on_apply_motion_to_mouse_scroll(m, r, is_left);
-    } else {
-        reex_on_apply_motion_to_mouse_move(m, r, is_left);
-    }
 }
 
 static inline bool should_report(void) {
@@ -249,15 +254,16 @@ static inline bool should_report(void) {
 
 void pointing_device_init_kb(void) {
     reex.ex_this_have_ball = pmw3360_init(1);
+    reex.ex_that_have_ball = false;
     if (reex.ex_this_have_ball) {
 #if defined(REEX_PMW3360_UPLOAD_SROM_ID)
-#    if REEX_PMW3360_UPLOAD_SROM_ID == 0x04
+    #if REEX_PMW3360_UPLOAD_SROM_ID == 0x04
         pmw3360_srom_upload(1,pmw3360_srom_0x04);
-#    elif REEX_PMW3360_UPLOAD_SROM_ID == 0x81
+    #elif REEX_PMW3360_UPLOAD_SROM_ID == 0x81
         pmw3360_srom_upload(1,pmw3360_srom_0x81);
-#    else
-#        error Invalid value for REEX_PMW3360_UPLOAD_SROM_ID. Please choose 0x04 or 0x81 or disable it.
-#    endif
+    #else
+        #error Invalid value for REEX_PMW3360_UPLOAD_SROM_ID. Please choose 0x04 or 0x81 or disable it.
+    #endif
 #endif
         pmw3360_cpi_set(EX_CPI_DEFAULT - 1);
     }
@@ -268,10 +274,9 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
         pmw3360_motion_t ex_d = {0};
         if (pmw3360_motion_burst(1,&ex_d)) {
             ATOMIC_BLOCK_FORCEON {
+                reex.ex_this_motion.have_ball = reex.ex_this_have_ball;
                 reex.ex_this_motion.x = add16(reex.ex_this_motion.x, ex_d.x);
                 reex.ex_this_motion.y = add16(reex.ex_this_motion.y, ex_d.y);
-                //reex.ex_this_motion.x = clip2int8(mouse_report.x + reex.ex_this_motion.x);
-                //reex.ex_this_motion.y = clip2int8(mouse_report.y + reex.ex_this_motion.y);
             }
         }
     }
@@ -279,13 +284,18 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     if (is_keyboard_master() && should_report()) {
         // modify mouse report by PMW3360 motion.
         if(reex.ex_this_have_ball){
-        motion_to_mouse(&reex.ex_this_motion, &mouse_report, is_keyboard_left(), reex.scroll_mode);
+            reex.that_motion.x = clip2int8(reex.that_motion.x + reex.ex_this_motion.x);
+            reex.that_motion.y = clip2int8(reex.that_motion.y + reex.ex_this_motion.y);
+            reex.ex_this_motion.x = 0;
+            reex.ex_this_motion.y = 0;
         }
-        //if(reex.ex_that_have_ball){
-        motion_to_mouse(&reex.ex_that_motion, &mouse_report, !is_keyboard_left(), !reex.scroll_mode);
-        //}
+        if(reex.ex_that_have_ball){
+            reex.this_motion.x = clip2int8(reex.this_motion.x + reex.ex_that_motion.x);
+            reex.this_motion.y = clip2int8(reex.this_motion.y + reex.ex_that_motion.y);
+            reex.ex_that_motion.x = 0;
+            reex.ex_that_motion.y = 0;
+        }
     }
     return pointing_device_task_user(mouse_report);
 }
-
 #endif
