@@ -53,3 +53,11 @@ MAGIC_ENABLE = no
 VIA_ENABLE = yes
 
 GRAVE_ESC_ENABLE = no
+
+VIAL_ENABLE = yes
+
+# atmega32u4 flash is nearly full: disable optional Vial features.
+QMK_SETTINGS = no
+TAP_DANCE_ENABLE = no
+COMBO_ENABLE = no
+KEY_OVERRIDE_ENABLE = no

@@ -1,18 +1,18 @@
 # MCU name
-MCU = RP2040
+MCU = atmega32u4
 
 # Bootloader selection
-BOOTLOADER = rp2040
+BOOTLOADER = caterina
 
 # Link Time Optimization required for size.
 LTO_ENABLE = yes
 
 # Build Options
 BOOTMAGIC_ENABLE = no       # Enable Bootmagic Lite
-EXTRAKEY_ENABLE = yes       # Audio control and System control
+EXTRAKEY_ENABLE = no        # Audio control and System control
 CONSOLE_ENABLE = no         # Console for debug
 COMMAND_ENABLE = no         # Commands for debug and configuration
-NKRO_ENABLE = yes           # Enable N-Key Rollover
+NKRO_ENABLE = no            # Enable N-Key Rollover
 BACKLIGHT_ENABLE = no       # Enable keyboard backlight functionality
 AUDIO_ENABLE = no           # Audio output
 
@@ -29,10 +29,15 @@ SRC += drivers/pmw3360/pmw3360.c
 QUANTUM_LIB_SRC += spi_master.c # Optical sensor use SPI to communicate
 
 # This is unnecessary for processing KC_MS_BTN*.
-MOUSEKEY_ENABLE = yes
+MOUSEKEY_ENABLE = no
 
 # Enabled only one of RGBLIGHT and RGB_MATRIX if necessary.
-RGBLIGHT_ENABLE = yes       # Enable RGBLIGHT
+# RGB lighting is fully disabled on the atmega32u4 Vial build to fit the
+# firmware into flash while keeping the auto-mouse-layer and the Vial lock
+# feature enabled.
+RGBLIGHT_ENABLE = no       # Enable RGBLIGHT
+RGB_MATRIX_ENABLE = no      # Enable RGB_MATRIX (not work yet)
+RGB_MATRIX_DRIVER = ws2812
 
 # Do not enable SLEEP_LED_ENABLE. it uses the same timer as BACKLIGHT_ENABLE
 SLEEP_LED_ENABLE = no       # Breathing sleep LED during USB suspend
@@ -45,12 +50,12 @@ SRC += lib/oledkit/oledkit.c    # OLED utility for Reex series.
 SRC += lib/reex/reex.c
 
 # Disable other features to squeeze firmware size
-SPACE_CADET_ENABLE = yes
-MAGIC_ENABLE = yes
+SPACE_CADET_ENABLE = no
+MAGIC_ENABLE = no
 
 VIA_ENABLE = yes
 
-GRAVE_ESC_ENABLE = yes
+GRAVE_ESC_ENABLE = no
 
 ENCODER_ENABLE = yes
 
@@ -58,12 +63,10 @@ ENCODER_MAP_ENABLE = yes
 
 DIP_SWITCH_ENABLE = yes
 
-WS2812_DRIVER = vendor
-SERIAL_DRIVER = vendor
-
 VIAL_ENABLE = yes
-QMK_SETTINGS = yes 
 
-TAP_DANCE_ENABLE = yes
-COMBO_ENABLE = yes
-KEY_OVERRIDE_ENABLE = yes
+# atmega32u4 flash is nearly full: disable optional Vial features.
+QMK_SETTINGS = no
+TAP_DANCE_ENABLE = no
+COMBO_ENABLE = no
+KEY_OVERRIDE_ENABLE = no

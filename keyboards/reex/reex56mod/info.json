@@ -9,12 +9,6 @@
     "rgblight": {
         "driver": "ws2812"
     },
-    "ws2812": {
-        "driver": "vendor"
-    },
-    "features": {
-        "encoder": true
-    },
     "layouts": {
         "LAYOUT": {
             "layout": [

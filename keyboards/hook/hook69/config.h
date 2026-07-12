@@ -46,8 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *                  ROW2COL = ROW = Anode (+), COL = Cathode (-, marked on diode)
  *
  */
-#define MATRIX_ROW_PINS { GP4,  GP5,  GP6,  GP7,  GP8,  GP9  }
-#define MATRIX_COL_PINS { GP29, GP28, GP27, GP26, GP18, GP20 }
+#define MATRIX_ROW_PINS { D4, C6, D7, E6, B4, B5 }
+#define MATRIX_COL_PINS { F4, F5, F6, F7, B1, B3 }
 //#define UNUSED_PINS
 
 /* COL2ROW, ROW2COL */
@@ -59,8 +59,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define SOFT_SERIAL_PIN D2  // or D1, D2, D3, E6
 
 /* Rotary encoder define*/
-#define ENCODERS_PAD_A { GP19 }
-#define ENCODERS_PAD_B { GP10 }
+#define ENCODERS_PAD_A { B2 }
+#define ENCODERS_PAD_B { B6 }
 //#define ENCODER_RESOLUTION 2
 
 //#define LED_NUM_LOCK_PIN B0
@@ -73,9 +73,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define BACKLIGHT_LEVELS 3
 //#define BACKLIGHT_BREATHING
 
-#define WS2812_DI_PIN GP0
+#define WS2812_DI_PIN      D3
 #ifdef RGBLIGHT_ENABLE
-#    define RGBLIGHT_LED_COUNT 1
+#    define RGBLIGHT_LED_COUNT      1
 //#    define RGBLIGHT_HUE_STEP 8
 //#    define RGBLIGHT_SAT_STEP 8
 //#    define RGBLIGHT_VAL_STEP 8
@@ -162,30 +162,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define BOOTMAGIC_LITE_ROW 0
 //#define BOOTMAGIC_LITE_COLUMN 0
 
-#if !defined(LAYER_STATE_8BIT) && !defined(LAYER_STATE_16BIT) && !defined(LAYER_STATE_32BIT)
-#    define LAYER_STATE_8BIT
-#endif
-
-#ifdef RGBLIGHT_ENABLE
-#    define RGBLIGHT_EFFECT_BREATHING
-#    define RGBLIGHT_EFFECT_RAINBOW_MOOD
-#    define RGBLIGHT_EFFECT_RAINBOW_SWIRL
-#    define RGBLIGHT_MODE_SNAKE
-#    define RGBLIGHT_MODE_KNIGHT
-#    define RGBLIGHT_MODE_CHRISTMAS
-#    define RGBLIGHT_MODE_STATIC_GRADIENT
-#    define RGBLIGHT_EFFECT_RGB_TEST
-#    define RGBLIGHT_MODE_ALTERNATING
-#    define RGBLIGHT_MODE_TWINKLE
-#endif
-
-#define TAP_CODE_DELAY 5
-
-/* define RP2040 boot	 */
-#define RP2040_BOOTLOADER_DOUBLE_TAP_RESET // Activates the double-tap behavior
-#define RP2040_BOOTLOADER_DOUBLE_TAP_RESET_TIMEOUT 200U // Timeout window in ms in which the double tap can occur.
-
-#define VIAL_KEYBOARD_UID {0x24, 0x07, 0xF1, 0xB0, 0x10, 0x99, 0xDC, 0x5C}
+/* Vial */
+#define VIAL_KEYBOARD_UID {0xF0, 0x3B, 0xC1, 0xF3, 0x6B, 0x93, 0x95, 0x3B}
 #define VIAL_UNLOCK_COMBO_ROWS {0, 0}
 #define VIAL_UNLOCK_COMBO_COLS {0, 1}
-

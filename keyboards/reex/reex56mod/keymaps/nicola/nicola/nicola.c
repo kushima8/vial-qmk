@@ -22,6 +22,9 @@
  * - あいまいな句読点"NICOLA_FUZZY_PUNCTUATION"の追加
  * - Hold/TapのHoldに指定したModifierに対応
  */
+ /*
+  * Copyright 2023 kushima8 (@kushima8)
+  */
 
 #include QMK_KEYBOARD_H
 #include "nicola.h"
@@ -196,7 +199,23 @@ void nicola_m_type(void) {
 
 void nicola_o_type(void) {
     if(nicola_o_key != 0) {
+#ifdef NICOLA_SHFTL_ENTER
+        if(nicola_o_key == NI_SHFTL) {
+            send_string(SS_TAP(X_ENTER));
+        }else{
+            send_string(" ");
+        }
+#endif
+#ifdef NICOLA_SHFTR_ENTER
+        if(nicola_o_key == NI_SHFTR) {
+            send_string(SS_TAP(X_ENTER));
+        }else{
+            send_string(" ");
+        }
+#endif
+#if !defined NICOLA_SHFTL_ENTER && !defined NICOLA_SHFTR_ENTER
         send_string(" ");
+#endif
     }
 }
 

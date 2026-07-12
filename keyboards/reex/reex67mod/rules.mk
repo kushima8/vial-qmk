@@ -32,7 +32,10 @@ QUANTUM_LIB_SRC += spi_master.c # Optical sensor use SPI to communicate
 MOUSEKEY_ENABLE = no
 
 # Enabled only one of RGBLIGHT and RGB_MATRIX if necessary.
-RGBLIGHT_ENABLE = yes       # Enable RGBLIGHT
+# RGB lighting is fully disabled on the atmega32u4 Vial build to fit the
+# firmware into flash while keeping the auto-mouse-layer and the Vial lock
+# feature enabled.
+RGBLIGHT_ENABLE = no       # Enable RGBLIGHT
 RGB_MATRIX_ENABLE = no      # Enable RGB_MATRIX (not work yet)
 RGB_MATRIX_DRIVER = ws2812
 
@@ -59,3 +62,11 @@ ENCODER_ENABLE = yes
 ENCODER_MAP_ENABLE = yes
 
 DIP_SWITCH_ENABLE = yes
+
+VIAL_ENABLE = yes
+
+# atmega32u4 flash is nearly full: disable optional Vial features.
+QMK_SETTINGS = no
+TAP_DANCE_ENABLE = no
+COMBO_ENABLE = no
+KEY_OVERRIDE_ENABLE = no

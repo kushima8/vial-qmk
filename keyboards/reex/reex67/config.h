@@ -40,7 +40,7 @@
 // it has been reported to work well in such cases.
 //#define SPLIT_WATCHDOG_ENABLE
 
-#define SPLIT_TRANSACTION_IDS_KB REEX_GET_INFO, REEX_GET_MOTION, REEX_SET_CPI
+#define SPLIT_TRANSACTION_IDS_KB REEX_GET_INFO, REEX_GET_MOTION, REEX_SET_CPI, REEX_GET_EX_MOTION
 
 // RGB LED settings
 #define WS2812_DI_PIN       D3
@@ -78,18 +78,18 @@
 #undef LOCKING_SUPPORT_ENABLE
 #undef LOCKING_RESYNC_ENABLE
 
-#ifdef RGBLIGHT_ENABLE
-#    define RGBLIGHT_EFFECT_BREATHING
-#    define RGBLIGHT_EFFECT_RAINBOW_MOOD
-#    define RGBLIGHT_EFFECT_RAINBOW_SWIRL
-#    define RGBLIGHT_MODE_SNAKE
-#    define RGBLIGHT_MODE_KNIGHT
-#    define RGBLIGHT_MODE_CHRISTMAS
-#    define RGBLIGHT_MODE_STATIC_GRADIENT
-#    define RGBLIGHT_EFFECT_RGB_TEST
-#    define RGBLIGHT_MODE_ALTERNATING
-#    define RGBLIGHT_MODE_TWINKLE
-#endif
+
+// RGBLIGHT animation effects are disabled to fit the Vial firmware into the
+// atmega32u4 flash (static colors still work).
 
 #define TAP_CODE_DELAY 5
 
+// VIA config
+#define VIA_CUSTOM_LIGHTING_ENABLE
+#define VIA_RGBLIGHT_USER_ADDR (EECONFIG_SIZE)
+#define VIA_EEPROM_MAGIC_ADDR (VIA_RGBLIGHT_USER_ADDR + DYNAMIC_KEYMAP_LAYER_COUNT * 4)  // Layer * 4bytes(RGB Light config)
+
+// Vial config
+#define VIAL_KEYBOARD_UID {0x53, 0x26, 0xDB, 0xF5, 0x85, 0x8E, 0x49, 0x6E}
+#define VIAL_UNLOCK_COMBO_ROWS {0, 0}
+#define VIAL_UNLOCK_COMBO_COLS {0, 1}
