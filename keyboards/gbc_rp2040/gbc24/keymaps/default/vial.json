@@ -28,6 +28,21 @@
             "name": "JOY_SPD_DN",
             "title": "JOY_SPD_DN",
             "shortName": "JOY_SPD_DN"
+        },
+        {
+            "name": "JOY_DZ_UP",
+            "title": "JOY_DZ_UP",
+            "shortName": "JOY_DZ_UP"
+        },
+        {
+            "name": "JOY_DZ_DN",
+            "title": "JOY_DZ_DN",
+            "shortName": "JOY_DZ_DN"
+        },
+        {
+            "name": "JOY_DZ_RST",
+            "title": "JOY_DZ_RST",
+            "shortName": "JOY_DZ_RST"
         }
     ],
     "layouts": {

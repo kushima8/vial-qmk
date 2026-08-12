@@ -32,6 +32,11 @@ OLED_ENABLE = yes               # Please Enable this in each keymaps.
 SPACE_CADET_ENABLE = no   # Vial 化によるフラッシュ節約のため無効化
 MAGIC_ENABLE = no         # Vial 化によるフラッシュ節約のため無効化
 
+# デッドゾーン実行時可変 + EEPROM 永続化の追加でフラッシュが不足するため有効化。
+# Vial 本体は VIA より大きく、無効のままでは 126 バイト超過する。
+# 有効時 24324/28672 (84%)、無効時 28798/28672 (超過)。
+LTO_ENABLE = yes
+
 VIA_ENABLE = yes
 
 GRAVE_ESC_ENABLE = no     # Vial 化によるフラッシュ節約のため無効化
