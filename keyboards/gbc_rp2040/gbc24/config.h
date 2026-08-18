@@ -104,6 +104,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define SPI_MISO_PIN GP20
 #    define PMW3360_NCS_PINS { GP26 }
 
+/* ---- オートマウスレイヤー (AML) ----
+ * トラックボール構成 (【B】= POINTING_DEVICE_ENABLE) のときのみ有効。
+ * ジョイスティック構成 (【A】) ではこのブロックごと無効になる。
+ */
+#    define POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#    define AUTO_MOUSE_DEFAULT_LAYER 3
+#    define AUTO_MOUSE_TIME 650
+//#    define AUTO_MOUSE_DELAY 200
+//#    define AUTO_MOUSE_DEBOUNCE 25
+
 /* ---- 同梱 pmw3360 ドライバのビルド互換対応 ----
  * vial-qmk (QMK 0.24 ベース) は gpio_set_pin_output() をネイティブに持つため
  * 旧 QMK 0.22 向けのエイリアスは不要 (定義すると再定義エラーになる)。
