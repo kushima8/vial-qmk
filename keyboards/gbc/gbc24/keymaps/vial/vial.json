@@ -123,6 +123,11 @@
             "name": "JOY_DZ_RST",
             "title": "JOY_DZ_RST",
             "shortName": "JOY_DZ_RST"
+        },
+        {
+            "name": "CFG_SHOW",
+            "title": "CFG_SHOW",
+            "shortName": "CFG_SHOW"
         }
     ],
     "layouts": {
