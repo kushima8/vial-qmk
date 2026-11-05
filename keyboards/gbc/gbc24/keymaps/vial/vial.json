@@ -128,6 +128,11 @@
             "name": "CFG_SHOW",
             "title": "CFG_SHOW",
             "shortName": "CFG_SHOW"
+        },
+        {
+            "name": "JOY_CALIB",
+            "title": "JOY_CALIB",
+            "shortName": "JOY_CALIB"
         }
     ],
     "layouts": {

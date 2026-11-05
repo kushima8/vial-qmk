@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define PRODUCT_ID   0x3635
 //#define DEVICE_VER   0x0001
 //#define MANUFACTURER kushima8
-//#define PRODUCT      HOOK64
+//#define PRODUCT      GBC24
 
 /* key matrix size */
 #define MATRIX_ROWS 5
@@ -101,6 +101,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define JOY_X_SPAN_POS 236
 #    define JOY_Y_SPAN_NEG 277
 #    define JOY_Y_SPAN_POS 230
+
+/* ---- キャリブレーション値の保存領域 (JOY_CALIB キー) ----
+ * EEPROM 末尾の JOY_CAL_EEPROM_SIZE バイトを確保する。VIA/Vial のマクロ
+ * バッファは末尾まで使う設計なので、DYNAMIC_KEYMAP_EEPROM_MAX_ADDR を
+ * 同じ量だけ手前に下げる (マクロバッファが 16 バイト縮むだけで、
+ * 既存のキーマップ / マクロの先頭アドレスは変わらない)。
+ */
+#    define JOY_CAL_EEPROM_SIZE 16
+#    define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR (TOTAL_EEPROM_BYTE_COUNT - 1 - JOY_CAL_EEPROM_SIZE)
+#    define JOY_CAL_EEPROM_ADDR (DYNAMIC_KEYMAP_EEPROM_MAX_ADDR + 1)
 #endif
 
 /* ---- PMW3360 トラックボール構成 (POINTING_INPUT = trackball) ----
@@ -128,14 +138,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#    define AUTO_MOUSE_DELAY 200
 //#    define AUTO_MOUSE_DEBOUNCE 25
 
-/* ---- 同梱 pmw3360 ドライバのビルド互換対応 ----
- * vial-qmk (QMK 0.24 ベース) は gpio_set_pin_output() をネイティブに持つため
- * 旧 QMK 0.22 向けのエイリアスは不要 (定義すると再定義エラーになる)。
- * stddef.h の強制 include のみ残す。
- */
-#    ifndef __ASSEMBLER__
-#        include <stddef.h>
-#    endif
+/* pmw3360 ドライバの QMK バージョン互換対応は drivers/pmw3360 側で行う
+ * (pmw3360.h が stddef.h と、QMK 0.22 向けの gpio_set_pin_output エイリアスを持つ)。
+ * config.h にハックは置かない。 */
 #endif
 
 //#define LED_NUM_LOCK_PIN B0
@@ -183,9 +188,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define MATRIX_HAS_GHOST
 
 /* Mechanical locking support. Use KC_LCAP, KC_LNUM or KC_LSCR instead in keymap */
-#define LOCKING_SUPPORT_ENABLE
+//#define LOCKING_SUPPORT_ENABLE   // メカニカルロックキー非対応 (4 構成で統一)
 /* Locking resynchronize hack */
-#define LOCKING_RESYNC_ENABLE
+//#define LOCKING_RESYNC_ENABLE
 
 /* If defined, GRAVE_ESC will always act as ESC when CTRL is held.
  * This is useful for the Windows task manager shortcut (ctrl+shift+esc).
@@ -261,6 +266,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RP2040_BOOTLOADER_DOUBLE_TAP_RESET_TIMEOUT 200U // Timeout window in ms in which the double tap can occur.
 
 /* Vial */
-#define VIAL_KEYBOARD_UID {0x1C, 0x15, 0x70, 0x32, 0xC1, 0x5A, 0xE8, 0x75}
+#define VIAL_KEYBOARD_UID {0x0C, 0xD3, 0x1D, 0x6D, 0x57, 0x86, 0x04, 0x04} // AVR 版と同一 (同じ製品として Vial に認識させ、レイアウトファイルを相互に読めるようにする)
 #define VIAL_UNLOCK_COMBO_ROWS {0, 0}
 #define VIAL_UNLOCK_COMBO_COLS {0, 1}
