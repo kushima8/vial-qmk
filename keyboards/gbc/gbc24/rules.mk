@@ -6,7 +6,7 @@ BOOTLOADER = caterina
 
 # Build Options
 BOOTMAGIC_ENABLE = yes      # VIA_ENABLE により強制 yes (no と書いても効かない)。上段の左端 (0,0) と右端 (1,2) の 2 キーだけを押しながら USB 接続で EEPROM 初期化 + ブートローダー (gbc24.c で上書き)
-EXTRAKEY_ENABLE = yes       # メディアキー (音量など)。ATmega32u4 でもエンドポイントは足りる (KBD/MOUSE/EXTRA/RAW x2/JOYSTICK = 6)
+EXTRAKEY_ENABLE = yes       # メディアキー (音量など)。ジョイスティックと同じ共有エンドポイントを使う
 CONSOLE_ENABLE = no         # Console for debug
 COMMAND_ENABLE = no         # Commands for debug and configuration
 NKRO_ENABLE = no            # Enable N-Key Rollover
@@ -22,6 +22,13 @@ SPLIT_KEYBOARD = no
 # KC_MS_BTN* の処理と、ジョイスティックのマウスモードでのドラッグ
 # (mousekey_get_report でボタン状態を引き継ぐ) に必要。no にするとドラッグが切れる。
 MOUSEKEY_ENABLE = yes
+
+# マウスを共有インターフェースから独立させる。
+# 共有のままだと、マウスがジョイスティック (iPadOS が対応しない汎用ゲームコントローラー) と
+# 同じ USB インターフェースに入り、iPad ではマウス (マウスキー、ジョイスティックのマウスモード)
+# が一切動かない。独立させると iPad でも動く (2026-11-22 Pro Micro 版で実機確認)。
+# エンドポイント: KBD / MOUSE / RAW / SHARED(EXTRA + JOYSTICK) で、ATmega32u4 の上限 6 に収まる。
+MOUSE_SHARED_EP = no
 
 # Do not enable SLEEP_LED_ENABLE. it uses the same timer as BACKLIGHT_ENABLE
 SLEEP_LED_ENABLE = no       # Breathing sleep LED during USB suspend
